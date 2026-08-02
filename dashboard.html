@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ABC Mission Hospital — HR Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #24215A;
+    --ink-soft: #5B6270;
+    --paper: #F4F7F6;
+    --paper-raised: #FFFFFF;
+    --primary: #24215A;
+    --primary-soft: #3B3777;
+    --accent: #8B6F4E;
+    --sage: #6E9973;
+    --sky: #6E9CBE;
+    --line: #C7D8E2;
+    --brick: #B8524A;
+    --radius: 12px;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+  }
+
+  /* ---------- Gate ---------- */
+  #gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #gate .box {
+    width: 100%;
+    max-width: 360px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+  }
+  #gate h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--primary);
+    margin: 0 0 6px;
+  }
+  #gate p { color: var(--ink-soft); font-size: 13px; margin: 0 0 22px; }
+  #gate input {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  #gate button {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px;
+    cursor: pointer;
+  }
+  #gate .err { color: var(--brick); font-size: 12.5px; margin-top: 10px; display: none; }
+
+  /* ---------- Dashboard shell ---------- */
+  #app { display: none; }
+  .topbar {
+    background: var(--primary);
+    color: white;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .topbar .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .topbar .brand img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+  }
+  .topbar .brand-text .org {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin: 0 0 2px;
+  }
+  .topbar h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 20px;
+    margin: 0;
+  }
+  .topbar .meta { font-family: var(--font-mono); font-size: 12px; opacity: 0.75; }
+
+  .layout { max-width: 1100px; margin: 0 auto; padding: 28px 24px 80px; }
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .toolbar select, .toolbar input {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper-raised);
+  }
+  .toolbar input[type="search"] { flex: 1; min-width: 200px; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat .num { font-family: var(--font-display); font-size: 26px; color: var(--primary); }
+  .stat .label { font-size: 11.5px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  @media (max-width: 640px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .list { display: flex; flex-direction: column; gap: 10px; }
+
+  .entry {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color 0.12s ease;
+  }
+  .entry:hover { border-color: var(--primary-soft); }
+
+  .entry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .entry-head .who { font-weight: 600; font-size: 13.5px; }
+  .entry-head .when { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
+
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .pill.status-New { background: #EFE6DA; color: #6B5636; }
+  .pill.status-In-Review { background: #DCE8EF; color: #2E5B78; }
+  .pill.status-Resolved { background: #E3EEE4; color: #3F6B49; }
+
+  .entry .tags { display: flex; gap: 8px; margin-bottom: 8px; }
+  .entry .cat { font-size: 11.5px; color: var(--sage); font-weight: 600; }
+  .entry .dept { font-size: 11.5px; color: var(--ink-soft); }
+  .entry .preview {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+
+  /* ---------- Detail panel ---------- */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 52, 58, 0.35);
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  .overlay.active { display: flex; }
+
+  .panel {
+    background: var(--paper-raised);
+    border-radius: var(--radius);
+    max-width: 560px;
+    width: 100%;
+    padding: 30px;
+  }
+  .panel .close {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+  .panel h2 { font-family: var(--font-display); font-weight: 500; font-size: 19px; color: var(--primary); margin: 0 0 4px; }
+  .panel .meta-line { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft); margin-bottom: 18px; }
+  .panel .msg-block {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 14px;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+  }
+  .panel label { display: block; font-size: 12.5px; font-weight: 600; color: var(--primary); margin-bottom: 6px; }
+  .panel select, .panel textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .panel textarea { min-height: 90px; resize: vertical; }
+  .panel button.save {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 11px 20px;
+    cursor: pointer;
+  }
+  .panel .save-msg { font-size: 12.5px; margin-left: 10px; color: var(--sage); }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <img src="assets/logo.png" alt="ABC Mission Hospital logo" style="width:64px;height:64px;object-fit:contain;margin-bottom:14px;" />
+    <h1>ABC Mission Hospital</h1>
+    <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--sage);margin:-4px 0 18px;">Open Door — HR Dashboard</p>
+    <p>Enter your access code to view submissions.</p>
+    <input type="password" id="codeInput" placeholder="Access code" autocomplete="off" />
+    <button id="gateBtn">Enter</button>
+    <div class="err" id="gateErr">That code didn't work. Try again.</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <img src="assets/logo.png" alt="ABC Mission Hospital logo" />
+      <div class="brand-text">
+        <p class="org">ABC Mission Hospital</p>
+        <h1>Open Door — HR Dashboard</h1>
+      </div>
+    </div>
+    <div class="meta" id="lastRefreshed">—</div>
+  </div>
+
+  <div class="layout">
+    <div class="stat-row" id="statRow">
+      <div class="stat"><div class="num" id="statTotal">0</div><div class="label">Total</div></div>
+      <div class="stat"><div class="num" id="statNew">0</div><div class="label">New</div></div>
+      <div class="stat"><div class="num" id="statReview">0</div><div class="label">In Review</div></div>
+      <div class="stat"><div class="num" id="statResolved">0</div><div class="label">Resolved</div></div>
+    </div>
+
+    <div class="toolbar">
+      <select id="filterStatus">
+        <option value="">All statuses</option>
+        <option>New</option>
+        <option>In Review</option>
+        <option>Resolved</option>
+      </select>
+      <select id="filterCategory">
+        <option value="">All categories</option>
+        <option>Workload & staffing</option>
+        <option>Management & leadership</option>
+        <option>Safety & wellbeing</option>
+        <option>Equipment & facilities</option>
+        <option>Culture & respect</option>
+        <option>Pay & scheduling</option>
+        <option>Systems & processes</option>
+        <option>Other</option>
+      </select>
+      <input type="search" id="filterSearch" placeholder="Search message, department…" />
+    </div>
+
+    <div class="list" id="list"></div>
+    <div class="empty" id="emptyMsg" style="display:none;">No submissions match these filters.</div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel"></div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
